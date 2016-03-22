@@ -101,7 +101,7 @@ public class ConversationActivity extends AppCompatActivity {
             String mac = getArguments().getString(KEP_MAC);
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             mDevice = mBluetoothAdapter.getRemoteDevice(mac);
-            mThread = new BZThread(mBluetoothAdapter, mDevice);
+            mThread = new BZThread(mac);
             mThread.start();
             mAdapter = new Adapter();
         }
@@ -155,11 +155,6 @@ public class ConversationActivity extends AppCompatActivity {
             }
 
             mMessage.setText("");
-        }
-
-        void startConversation(){
-            Log.d(TAG, "start connect...");
-            new ConnectThread(mBluetoothAdapter, mDevice).start();
         }
 
         class Adapter extends RecyclerView.Adapter {
@@ -217,8 +212,8 @@ public class ConversationActivity extends AppCompatActivity {
             private InputStream mIn;
             private OutputStream mOut;
 
-            public BZThread(BluetoothAdapter adapter, BluetoothDevice device) {
-                super(adapter, device);
+            public BZThread(String mac) {
+                super(mac);
             }
 
             protected void manageConnectedSocket(BluetoothSocket mmSocket) {
@@ -263,22 +258,22 @@ public class ConversationActivity extends AppCompatActivity {
         }
 
         //http://developer.android.com/intl/zh-tw/guide/topics/connectivity/bluetooth.html#ConnectingDevices
-        static class ConnectThread extends Thread {
+        public static class ConnectThread extends Thread {
             private final BluetoothSocket mmSocket;
             private final BluetoothDevice mDevice;
             private BluetoothAdapter mBluetoothAdapter;
 
-            public ConnectThread(BluetoothAdapter adapter, BluetoothDevice device) {
+            public ConnectThread(String mac) {
                 // Use a temporary object that is later assigned to mmSocket,
                 // because mmSocket is final
                 BluetoothSocket tmp = null;
-                mBluetoothAdapter = adapter;
-                mDevice = device;
+                mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                mDevice = mBluetoothAdapter.getRemoteDevice(mac.toUpperCase());
 
                 // Get a BluetoothSocket to connect with the given BluetoothDevice
                 try {
                     // MY_UUID is the app's UUID string, also used by the server code
-                    tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+                    tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
                 } catch (IOException e) { }
                 mmSocket = tmp;
             }
